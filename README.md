@@ -1,2 +1,4 @@
 # Lab 7 - Starter
-Grace Jin
+Grace Jin - worked alone
+Github Page: https://hongyuejin.github.io/Lab7_Starter/
+
