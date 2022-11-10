@@ -45,7 +45,35 @@ function initializeServiceWorker() {
   // We first must register our ServiceWorker here before any of the code in
   // sw.js is executed.
   // B1. TODO - Check if 'serviceWorker' is supported in the current browser
-  // B2. TODO - Listen for the 'load' event on the window object.
+  if ("serviceWorker" in navigator) {
+    // B2. TODO - Listen for the 'load' event on the window object.
+    window.addEventListener('load', async function register(){
+      try {
+        const registration = await navigator.serviceWorker.register("./sw.js", {
+          scope: "./",
+        });
+        if (registration.installing) {
+          console.log("Service worker installing");
+        } else if (registration.waiting) {
+          console.log("Service worker installed");
+        } else if (registration.active) {
+          console.log("Service worker active");
+        }
+      } catch (error) {
+        console.error(`Registration failed with ${error}`);
+      }
+      // Steps B3-B6 will be *inside* the event listener's function created in B2
+      // B3. TODO - Register '/sw.js' as a service worker (The MDN article
+      //            "Using Service Workers" will help you here)
+
+      // B4. TODO - Once the service worker has been successfully registered, console
+      //            log that it was successful.
+      // B5. TODO - In the event that the service worker registration fails, console
+      //            log that it has failed.
+      // STEPS B6 ONWARDS WILL BE IN /sw.js
+    })
+  }
+
   // Steps B3-B6 will be *inside* the event listener's function created in B2
   // B3. TODO - Register '/sw.js' as a service worker (The MDN article
   //            "Using Service Workers" will help you here)
@@ -69,8 +97,8 @@ async function getRecipes() {
   // A1. TODO - Check local storage to see if there are any recipes.
   //            If there are recipes, return them.
   let recipes = localStorage.getItem('recipes');
-  if(recipes != NaN){
-	return recipes;
+  if(recipes){
+	return JSON.parse(recipes);
   }
   /**************************/
   // The rest of this method will be concerned with requesting the recipes
@@ -83,7 +111,7 @@ async function getRecipes() {
   //            you can call to either resolve the Promise or Reject it.
   /**************************/
   const arrRecipes = [];
-  arrRecipes = new Promise(async (resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
 	// A4-A11 will all be *inside* the callback function we passed to the Promise
 	// we're returning
 	/**************************/
@@ -92,24 +120,24 @@ async function getRecipes() {
 	// A5. TODO - Since we are going to be dealing with asynchronous code, create
 	//            a try / catch block. A6-A9 will be in the try portion, A10-A11
 	//            will be in the catch portion.
-	for(const url in RECIPE_URLS){
+	for(let i = 0; i < RECIPE_URLS.length; i++){
 		try {
 			// A6. TODO - For each URL in that array, fetch the URL - MDN also has a great
 			//            article on fetch(). NOTE: Fetches are ASYNCHRONOUS, meaning that
 			//            you must either use "await fetch(...)" or "fetch.then(...)". This
 			//            function is using the async keyword so we recommend "await"
-			const fetchURL = await fetch(url);
+			let fetchURL = await fetch(RECIPE_URLS[i]);
 			// A7. TODO - For each fetch response, retrieve the JSON from it using .json().
 			//            NOTE: .json() is ALSO asynchronous, so you will need to use
 			//            "await" again
-			const recipe = await fetchURL.json();
+			let recipe = await fetchURL.json();
 			// A8. TODO - Add the new recipe to the recipes array
 			arrRecipes.push(recipe);
 			// A9. TODO - Check to see if you have finished retrieving all of the recipes,
 			//            if you have, then save the recipes to storage using the function
 			//            we have provided. Then, pass the recipes array to the Promise's
 			//            resolve() method.
-			if(url === 'https://introweb.tech/assets/json/6_one-pot-thanksgiving-dinner.json'){
+			if(i == RECIPE_URLS.length-1){
 				saveRecipesToStorage(arrRecipes);
 				resolve(arrRecipes);
 			}
